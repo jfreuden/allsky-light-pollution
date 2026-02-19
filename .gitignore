@@ -1,0 +1,11 @@
+# IDE Stuff
+.idea/
+.vscode/
+
+# OS Stuff
+.DS_Store
+
+
+# Project Specific Ignores
+images/*
+!images/.gitkeep
