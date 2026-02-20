@@ -52,55 +52,13 @@ if __name__ == '__main__':
         newData = pytesseract.image_to_string(stat_block)
         newData = newData.splitlines()
 
-        # Between here and the pixel brightness computations, stuff gets unexplainably wonky. Use dataframe
+        if len(newData) != 5:
+            print(f'Unexpected number of text lines in image: {file}')
+            continue
 
-
-        data = []
-        for i in range(len(newData) - 1):
-            newData[i] = newData[i].replace(' ', '')
-            iterData = newData[i].replace(':', '')
-            if len(iterData) >= 4:
-                data.append(iterData)
-
-        # Makes sure the list is not empty
-        emptyCounter = 0
-        while len(data) <= 2:
-            data.append('0')
-
-        # Removes the file number
-        if len(data[-1]) == 9:
-            data.remove(data[-1])
-
-        # Adds each date
-        try:
-            if len(data[0]) >= 8:
-                date.append(data[0])
-            else:
-                date.append('Check ' + file)
-        except:
-            date.append('Check ' + file)
-
-        # Adds each time
-        try:
-            if data[1].isdecimal() == True:
-                time.append(int(data[1]))
-            else:
-                time.append('Check ' + file)
-        except:
-            time.append('Check ' + file)
-
-        # Adds each exposure
-        try:
-            expoCounter = 0
-            for i in data[2:]:
-                if len(i) >= 5 and len(i) <= 7:
-                    correctedExposure = (float(i) - 5) / 100000
-                    exposure.append(correctedExposure)
-                    expoCounter += 1
-            if expoCounter == 0:
-                exposure.append('Check ' + file)
-        except:
-            exposure.append('Check ' + file)
+        date.append(newData[0])
+        time.append(newData[1])
+        exposure.append(newData[2].removesuffix('s'))
 
         # Averages of the pixels in RGB
         pixelNW = image.getpixel((310, 230))
