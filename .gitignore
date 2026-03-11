@@ -9,3 +9,6 @@
 # Project Specific Ignores
 images/*
 !images/.gitkeep
+
+# Virtual environments
+.venv/
