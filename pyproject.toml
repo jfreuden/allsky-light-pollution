@@ -1,0 +1,69 @@
+[build-system]
+requires = ["setuptools>=62", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "allsky-light-pollution"
+version = "0.1.0"
+description = "Scientific computing tools for all-sky image processing and analysis"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+  { name = "Joshua Freudenhammer" },
+  { name = "Diane Turnshek" }
+]
+dependencies = [
+  "numpy",
+  "pandas",
+  "dask",
+  "pillow",
+  "pyocr",
+  "pytesseract",
+  "scipy",
+  "astropy",
+  "ephem",
+  "skyfield",
+  "matplotlib",
+  "plotly",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black", # Used to format code
+    "pre-commit", # Used to run checks prior to committing code
+    "pytest", # Used to run tests
+    "pytest-cov", # Used to measure test coverage
+    "pylint", # test pylint in unit tests
+    "pytest-copie", # Used to create hydrated copier projects for testing
+    "tox", # Used to run tests in multiple environments
+    ## Dependencies that are needed to test hydrated projects:
+    "ipykernel",
+    "ipython",
+    "jupyter",
+    "jupytext",
+    "mypy",
+    "nbconvert",
+    "nbsphinx",
+    "pre-commit",
+    "ruff",
+    "sphinx",
+    "sphinx-autoapi",
+    "sphinx-copybutton",
+    "sphinx-rtd-theme>=3.0",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.black]
+line-length = 110
+
+[tool.isort]
+profile = "black"
+line_length = 110
