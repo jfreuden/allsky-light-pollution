@@ -72,7 +72,7 @@ def classify_at_cursor(image, x, y, atlas, atlas_chars, width, height, eps=1e-6)
     scores : dict[str, float]
     """
     patch = image[y:y + height, x:x + width]
-    if patch.shape != (height, width):
+    if patch.shape != (height, width) and patch.shape != (height, width, 3):
         raise ValueError(f"Patch shape {patch.shape} does not match {(height, width)}")
 
     scores = {}
