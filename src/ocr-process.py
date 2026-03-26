@@ -3,14 +3,16 @@
 import os
 from PIL import Image
 from PIL.Image import Resampling
-from pytesseract import pytesseract
 from pandas import DataFrame
+
+import pyocr.builders
+ocr = pyocr.get_available_tools()[1]
 
 if __name__ == '__main__':
     # Finds the name of all images in a folder
-    filePath = r'C:\Users\Rainybyte\Research\AllSky Light Pollution Project\2019-09\\'
+    filePath = r'/home/rainybyte/AllSkyImages/2010-08/'
     allImages = os.listdir(filePath)
-
+    allImages = sorted(filter(lambda x: x.endswith('.JPG'), allImages))
     # Important data lists
     date = []
     time = []
@@ -18,17 +20,12 @@ if __name__ == '__main__':
     imageRGB = []
     imageNumber = []
 
-    tesseractPath = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
-
     images = []
     for file in allImages:
         imagePath = filePath + file
         print(imagePath)
         image = Image.open(imagePath)
         images.append((file, image))
-
-    # for (file, image) in images:
-    #     print(file)
 
         full_height = 480
         block_width = 80
@@ -45,15 +42,9 @@ if __name__ == '__main__':
         stat_block.paste(bottom_block, (0, top_height))
         stat_block = stat_block.resize((3 * block_width, 2 * (top_height + bottom_height)), Resampling.LANCZOS)
 
-        # Directs tesseract to the library
-        pytesseract.tesseract_cmd = tesseractPath
+        txt = ocr.image_to_string(stat_block, lang='eng', builder=pyocr.builders.TextBuilder())
 
-        test = pytesseract.image_to_data(stat_block, lang='eng+math', config='--psm 12 --oem 1')
-
-        # Extracts the text
-        newData = pytesseract.image_to_string(stat_block).splitlines()
-
-
+        newData = txt.splitlines()
         if len(newData) != 5:
             print(f'Unexpected number of text lines in image: {file}, {len(newData)} instead of 5.')
             continue
