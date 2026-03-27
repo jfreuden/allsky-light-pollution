@@ -2,14 +2,16 @@ import numpy as np
 import pandas as pd
 from dask.array.image import imread
 
-# These are specific to my atlas
-atlas_chars = "0123456789s"
-atlas_symbs = ":/."
-atlas_image = imread('/home/rainybyte/AllSkyImages/font_atlas.bmp') # 66 x 16 pixels
+# These are specific to my atlases, but shared between both aliased and antialiased ones
 char_width = 6
 char_height = 8
 symb_width = 3
 symb_height = 8
+atlas_chars = "0123456789s"
+atlas_symbs = ":/."
+
+# all of these are specific to my atlas, particularly the aliased one. They are overridden in `classifiers_antialiased.py`
+atlas_image = imread('/home/rainybyte/AllSkyImages/font_atlas.bmp') # 66 x 16 pixels
 
 # Now split into two atlas char arrays, one for the characters at 6x8 pixels and one for symbols at 3x8
 # Note: the symbol atlas is not used in the current implementation, as we know where all the symbols should be and can fail the parse in the cases when we are wrong.
@@ -87,7 +89,7 @@ def extract_patches_2d(image, positions, width, height):
     patches = []
     for x, y in positions:
         patch = np.asarray(image[y:y + height, x:x + width], dtype=np.float32)
-        if patch.shape != (height, width):
+        if patch.shape != (height, width) and patch.shape != (height, width, 3):
             raise ValueError(f"Bad patch shape {patch.shape}, expected {(height, width)}")
         patch = patch - patch.mean()
         patches.append(patch.reshape(-1))
@@ -138,6 +140,8 @@ FILENAME_POS = [
     (5 + 8 * char_width, 466),
 ]
 
+IMAGE_DIMENSIONS = (480, 640)
+
 def classify_patches_deterministic(image, positions, tolerance: float):
     patches_2d = extract_patches_2d(image, positions, char_width, char_height)
     best_idx, best_scores, _ = classify_patches_2d(patches_2d, digit_templates, digit_template_norms)
@@ -152,14 +156,14 @@ def classify_patches_deterministic(image, positions, tolerance: float):
 
 
 def classify_date_string(image, tolerance=0.85):
-    image = np.asarray(image, dtype=np.float32).reshape(480, 640)
+    image = np.asarray(image, dtype=np.float32).reshape(IMAGE_DIMENSIONS)
     chars = classify_patches_deterministic(image, DATE_POS, tolerance)
 
     chars = chars[:4] + ['/'] + chars[4:6] + ['/'] + chars[6:]
     return ''.join(chars)
 
 def classify_time_string(image, tolerance=0.85):
-    image = np.asarray(image, dtype=np.float32).reshape(480, 640)
+    image = np.asarray(image, dtype=np.float32).reshape(IMAGE_DIMENSIONS)
     chars = classify_patches_deterministic(image, TIME_POS, tolerance)
     chars = chars[:2] + [':'] + chars[2:4] + [':'] + chars[4:]
     return ''.join(chars)
@@ -170,7 +174,7 @@ EXPOSURE_DECIMAL_POS = [
 ]
 
 def classify_exposure_string(image, tolerance=0.85):
-    image = np.asarray(image, dtype=np.float32).reshape(480, 640)
+    image = np.asarray(image, dtype=np.float32).reshape(IMAGE_DIMENSIONS)
 
     # This cannot be done deterministically. I must find the number of digits before the decimal point first.
     for preceding_digits, candidate_decimal_pos in enumerate(EXPOSURE_DECIMAL_POS,1):
@@ -199,7 +203,7 @@ def classify_exposure_string(image, tolerance=0.85):
     return None
 
 def classify_filename_string(image, tolerance=0.85):
-    image = np.asarray(image, dtype=np.float32).reshape(480, 640)
+    image = np.asarray(image, dtype=np.float32).reshape(IMAGE_DIMENSIONS)
     chars = classify_patches_deterministic(image, FILENAME_POS, tolerance)
     return ''.join(chars)
 
