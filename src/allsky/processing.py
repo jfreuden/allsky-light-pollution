@@ -1,9 +1,7 @@
-from allsky.classifiers import classify_fields_block
-
 import os
 from dask.array.image import imread
 
-def process_allsky_image_folder(directory: str,):
+def process_allsky_image_folder(directory: str, classify_fields_block):
     filename_pattern = f'{directory}*.JPG'
     images = imread(filename_pattern)
     # TODO: see if I can rework the downstream code to not need this transpose
