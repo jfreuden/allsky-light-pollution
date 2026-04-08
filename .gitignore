@@ -12,3 +12,7 @@ images/*
 
 # Virtual environments
 .venv/
+
+# ---------------
+# Ignore images directory
+images/*/
