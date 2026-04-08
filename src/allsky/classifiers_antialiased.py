@@ -29,7 +29,7 @@ def initialize_antialiased_classifiers():
     if atlas_image is not None:
         return
 
-    atlas_image = imread('/home/rainybyte/AllSkyImages/antialias-atlas.bmp')
+    atlas_image = imread('../../images/AllSkyImages/antialias-atlas.bmp')
     char_atlas = atlas_image[0][:8, :]
     symb_atlas = atlas_image[0][8:, :]
     atlas_charcount = char_atlas.shape[1] // char_width

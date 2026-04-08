@@ -11,7 +11,7 @@ atlas_chars = "0123456789s"
 atlas_symbs = ":/."
 
 # all of these are specific to my atlas, particularly the aliased one. They are overridden in `classifiers_antialiased.py`
-atlas_image = imread('/home/rainybyte/AllSkyImages/font_atlas.bmp') # 66 x 16 pixels
+atlas_image = imread('../../images/font_atlas.bmp') # 66 x 16 pixels
 
 # Now split into two atlas char arrays, one for the characters at 6x8 pixels and one for symbols at 3x8
 # Note: the symbol atlas is not used in the current implementation, as we know where all the symbols should be and can fail the parse in the cases when we are wrong.

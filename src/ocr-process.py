@@ -10,7 +10,7 @@ ocr = pyocr.get_available_tools()[1]
 
 if __name__ == '__main__':
     # Finds the name of all images in a folder
-    filePath = r'/home/rainybyte/AllSkyImages/2010-08/'
+    filePath = r'../../images/AllSkyImages/2010-08/'
     allImages = os.listdir(filePath)
     allImages = sorted(filter(lambda x: x.endswith('.JPG'), allImages))
     # Important data lists
