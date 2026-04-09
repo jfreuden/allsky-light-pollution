@@ -89,6 +89,7 @@ alias_labels = {
 }
 
 def plot_brightness(input_df, title_suffix=None, period="D", ax=None, plot_best_fit=True):
+    """Plot the brightness of the dataset. The "brightness" is defined as the average of the pixel values of the masked input image."""
     df = input_df[["timestamp", "image_mean", "image_std", "exposure"]].copy()
 
     plot_df = df.groupby(df["timestamp"].dt.to_period(period)).agg(
@@ -135,15 +136,16 @@ def plot_brightness(input_df, title_suffix=None, period="D", ax=None, plot_best_
             )
 
     ax.set_xlabel("Date")
-    ax.set_ylabel("Avg daily image brightness")
+    ax.set_ylabel("Mean Image Brightness")
     suffix = "" if title_suffix == "" or title_suffix is None else f" ({title_suffix})"
-    ax.set_title(f"{alias_labels[period]}image brightness" + suffix)
+    ax.set_title(f"{alias_labels[period]}Image Brightness" + suffix)
     ax.legend()
     fig.tight_layout()
     return ax
 
 
 def plot_exposure(input_df, title_suffix=None, period="D", ax=None, plot_best_fit=True):
+    """Plot the exposure time of the dataset."""
     df = input_df[["timestamp", "image_mean", "image_std", "exposure"]].copy()
 
     exposure_daily = df.groupby(df["timestamp"].dt.to_period(period)).agg(
@@ -192,15 +194,18 @@ def plot_exposure(input_df, title_suffix=None, period="D", ax=None, plot_best_fi
             )
 
     ax.set_xlabel("Date")
-    ax.set_ylabel("Mean nightly exposure time")
+    ax.set_ylabel("Mean Exposure Time")
     suffix = "" if title_suffix == "" or title_suffix is None else f" ({title_suffix})"
-    ax.set_title(f"{alias_labels[period]}mean exposure time" + suffix)
+    ax.set_title(f"{alias_labels[period]}Mean Exposure Time" + suffix)
     ax.legend()
     fig.tight_layout()
     return ax
 
 
-def plot_luminous_flux(input_df, title_suffix=None, period="D", ax=None, plot_best_fit=True):
+def plot_synthetic_luminous_flux(input_df, title_suffix=None, period="D", ax=None, plot_best_fit=True):
+    """Plot the synthetic luminous flux of the dataset.
+    The 'synthetic luminous flux' is defined as the average brightness per unit of exposure time.
+    This enables comparing same-real-brightness images that are darker / brighter due to exposure time only."""
     df = input_df[["timestamp", "image_mean", "image_std", "exposure"]].copy()
     df = df.assign(luminous_flux=df["image_mean"] / df["exposure"])
     df = df.dropna(subset=["timestamp", "image_mean", "image_std", "exposure", "luminous_flux"])
@@ -257,9 +262,9 @@ def plot_luminous_flux(input_df, title_suffix=None, period="D", ax=None, plot_be
             )
 
     ax.set_xlabel("Date")
-    ax.set_ylabel("Mean luminous flux")
+    ax.set_ylabel("Mean (synthetic) luminous flux")
     suffix = "" if title_suffix == "" or title_suffix is None else f" ({title_suffix})"
-    ax.set_title(f"{alias_labels[period]}luminous flux" + suffix)
+    ax.set_title(f"{alias_labels[period]} (Synthetic) Luminous Flux" + suffix)
     ax.legend()
     fig.tight_layout()
     return ax
