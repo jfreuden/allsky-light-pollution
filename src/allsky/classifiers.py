@@ -11,7 +11,7 @@ atlas_chars = "0123456789s"
 atlas_symbs = ":/."
 
 # all of these are specific to my atlas, particularly the aliased one. They are overridden in `classifiers_antialiased.py`
-atlas_image = imread('../../images/font_atlas.bmp') # 66 x 16 pixels
+atlas_image = imread("../../images/font_atlas.bmp")  # 66 x 16 pixels
 
 # Now split into two atlas char arrays, one for the characters at 6x8 pixels and one for symbols at 3x8
 # Note: the symbol atlas is not used in the current implementation, as we know where all the symbols should be and can fail the parse in the cases when we are wrong.
@@ -21,22 +21,38 @@ symb_atlas = atlas_image[0][8:, :]
 atlas_charcount = char_atlas.shape[1] // char_width
 
 # Reshape into (8, chars, char_width)
-char_atlas_chars = char_atlas.reshape(8, atlas_charcount, char_width).transpose(1, 0, 2).astype(np.float32).compute()
+char_atlas_chars = (
+    char_atlas.reshape(8, atlas_charcount, char_width)
+    .transpose(1, 0, 2)
+    .astype(np.float32)
+    .compute()
+)
 char_glyphs = dict(zip(atlas_chars, char_atlas_chars))
 
 digit_templates = np.stack([char_glyphs[ch] for ch in atlas_chars]).astype(np.float32)
 digit_templates = digit_templates - digit_templates.mean(axis=(1, 2), keepdims=True)
-digit_template_norms = np.sqrt(np.sum(digit_templates * digit_templates, axis=(1, 2))) + 1e-6
+digit_template_norms = (
+    np.sqrt(np.sum(digit_templates * digit_templates, axis=(1, 2))) + 1e-6
+)
 digit_templates = digit_templates.reshape(digit_templates.shape[0], -1)
 
 decimal_template = symb_atlas[:, 6:9].astype(np.float32)
 decimal_template = decimal_template - decimal_template.mean(keepdims=True)
 decimal_template_norm = np.sqrt(np.sum(decimal_template * decimal_template)) + 1e-6
 
-def score_patch_against_template(patch, template, eps=1e-6):
+
+def score_patch_against_template(patch, template, eps=1e-6) -> float:
     """
     Returns a normalized correlation score between a patch and a glyph template.
     Higher is better.
+
+    Parameters:
+    - patch: The image patch to compare.
+    - template: The glyph template to compare against.
+    - eps: A small epsilon value to prevent division by zero.
+
+    Returns:
+    - float: The normalized correlation score.
     """
     patch = np.asarray(patch, dtype=np.float32)
     template = np.asarray(template, dtype=np.float32)
@@ -44,11 +60,13 @@ def score_patch_against_template(patch, template, eps=1e-6):
     patch = patch - patch.mean()
     template = template - template.mean()
 
-    denom = np.sqrt(np.sum(patch ** 2) * np.sum(template ** 2)) + eps
+    denom = np.sqrt(np.sum(patch**2) * np.sum(template**2)) + eps
     return float(np.sum(patch * template) / denom)
 
 
-def classify_at_cursor(image, x, y, atlas, atlas_chars, width, height, eps=1e-6) -> tuple[str, float, dict[str, float]]:
+def classify_at_cursor(
+    image, x, y, atlas, atlas_chars, width, height, eps=1e-6
+) -> tuple[str, float, dict[str, float]]:
     """
     Classify the glyph centered/anchored at a known cursor position.
 
@@ -73,7 +91,7 @@ def classify_at_cursor(image, x, y, atlas, atlas_chars, width, height, eps=1e-6)
     best_score : float
     scores : dict[str, float]
     """
-    patch = image[y:y + height, x:x + width]
+    patch = image[y : y + height, x : x + width]
     if patch.shape != (height, width) and patch.shape != (height, width, 3):
         raise ValueError(f"Patch shape {patch.shape} does not match {(height, width)}")
 
@@ -85,17 +103,52 @@ def classify_at_cursor(image, x, y, atlas, atlas_chars, width, height, eps=1e-6)
     best_score = scores[best_char]
     return best_char, best_score, scores
 
-def extract_patches_2d(image, positions, width, height):
+
+def extract_patches_2d(image, positions, width, height) -> np.ndarray:
+    """
+    Extracts patches from an image at specified positions.
+
+    Parameters:
+    - image: The input image.
+    - positions: List of (x, y) coordinates for patch extraction.
+    - width: Width of the patches.
+    - height: Height of the patches.
+
+    Returns:
+    - np.ndarray: Array of extracted patches.
+    """
     patches = []
     for x, y in positions:
-        patch = np.asarray(image[y:y + height, x:x + width], dtype=np.float32)
+        patch = np.asarray(image[y : y + height, x : x + width], dtype=np.float32)
         if patch.shape != (height, width) and patch.shape != (height, width, 3):
-            raise ValueError(f"Bad patch shape {patch.shape}, expected {(height, width)}")
+            raise ValueError(
+                f"Bad patch shape {patch.shape}, expected {(height, width)}"
+            )
         patch = patch - patch.mean()
         patches.append(patch.reshape(-1))
     return np.stack(patches, axis=0)
 
+
 def classify_patches_2d(patches_2d, templates_2d, template_norms):
+    """
+    Classify 2D patches against provided templates by computing similarity scores.
+
+    This function takes an array of 2D patches and an array of 2D templates, and identifies the best-matching
+    template for each patch. It returns the index of the best-matching template, the corresponding similarity score,
+    and the full score matrix for all glyphs in the templates array..
+
+    :param patches_2d: A 2D array where each row represents a patch to be classified.
+    :param templates_2d: A 2D array where each row represents a template against
+        which the patches will be compared.
+    :param template_norms: A 1D array containing pre-computed norms of the template
+        rows in `templates_2d`.
+    :return: A tuple containing:
+        - The indices of the best-matching template for each patch
+          (of shape `(num_patches,)`).
+        - The best similarity scores for each patch (of shape `(num_patches,)`).
+        - The full score matrix with cosine similarity values between each patch
+          and each template (of shape `(num_patches, num_templates)`).
+    """
     patch_norms = np.linalg.norm(patches_2d, axis=1) + 1e-6
     raw = patches_2d @ templates_2d.T
     scores = raw / (patch_norms[:, None] * template_norms[None, :])
@@ -142,47 +195,82 @@ FILENAME_POS = [
 
 IMAGE_DIMENSIONS = (480, 640)
 
+
 def classify_patches_deterministic(image, positions, tolerance: float):
+    """
+    Classify 2D patches against provided templates deterministically.
+
+    :param image: The input image as a 2D array.
+    :param positions: Positions of patches within the image.
+    :param tolerance: The minimum similarity score required for a match.
+    :return: A list of characters corresponding to the best-matching templates.
+    """
     patches_2d = extract_patches_2d(image, positions, char_width, char_height)
-    best_idx, best_scores, _ = classify_patches_2d(patches_2d, digit_templates, digit_template_norms)
+    best_idx, best_scores, _ = classify_patches_2d(
+        patches_2d, digit_templates, digit_template_norms
+    )
 
     chars = []
     for idx, score in zip(best_idx, best_scores):
         ch = atlas_chars[idx]
         if score < tolerance:
-            ch = '?'
+            ch = "?"
         chars.append(ch)
     return chars
 
 
 def classify_date_string(image, tolerance=0.85):
+    """
+    Classify date string from an image using deterministic patch classification.
+
+    :param image: The input image as a 2D array.
+    :param tolerance: The minimum similarity score required for a match.
+    :return: A formatted date string.
+    """
     image = np.asarray(image, dtype=np.float32).reshape(IMAGE_DIMENSIONS)
     chars = classify_patches_deterministic(image, DATE_POS, tolerance)
 
-    chars = chars[:4] + ['/'] + chars[4:6] + ['/'] + chars[6:]
-    return ''.join(chars)
+    chars = chars[:4] + ["/"] + chars[4:6] + ["/"] + chars[6:]
+    return "".join(chars)
+
 
 def classify_time_string(image, tolerance=0.85):
+    """
+    Classify time string from an image using deterministic patch classification.
+
+    :param image: The input image as a 2D array.
+    :param tolerance: The minimum similarity score required for a match.
+    :return: A formatted time string.
+    """
     image = np.asarray(image, dtype=np.float32).reshape(IMAGE_DIMENSIONS)
     chars = classify_patches_deterministic(image, TIME_POS, tolerance)
-    chars = chars[:2] + [':'] + chars[2:4] + [':'] + chars[4:]
-    return ''.join(chars)
+    chars = chars[:2] + [":"] + chars[2:4] + [":"] + chars[4:]
+    return "".join(chars)
+
 
 EXPOSURE_DECIMAL_POS = [
     (5 + 1 * char_width, 32),
     (5 + 2 * char_width, 32),
 ]
 
+
 def classify_exposure_string(image, tolerance=0.85):
+    """
+    Classify exposure string from an image using deterministic patch classification.
+
+    :param image: The input image as a 2D array.
+    :param tolerance: The minimum similarity score required for a match.
+    :return: A formatted exposure string.
+    """
     image = np.asarray(image, dtype=np.float32).reshape(IMAGE_DIMENSIONS)
 
     # This cannot be done deterministically. I must find the number of digits before the decimal point first.
-    for preceding_digits, candidate_decimal_pos in enumerate(EXPOSURE_DECIMAL_POS,1):
+    for preceding_digits, candidate_decimal_pos in enumerate(EXPOSURE_DECIMAL_POS, 1):
         _, score, _ = classify_at_cursor(
             image,
             *candidate_decimal_pos,
-            atlas={'.': decimal_template},
-            atlas_chars=['.'],
+            atlas={".": decimal_template},
+            atlas_chars=["."],
             width=symb_width,
             height=symb_height,
         )
@@ -195,26 +283,46 @@ def classify_exposure_string(image, tolerance=0.85):
             postdecimal_positions = [
                 (postdecimal_offset + x * char_width, 32) for x in range(0, 4)
             ]
-            predecimal_chars = classify_patches_deterministic(image, predecimal_positions, tolerance)
-            postdecimal_chars = classify_patches_deterministic(image, postdecimal_positions, tolerance)
+            predecimal_chars = classify_patches_deterministic(
+                image, predecimal_positions, tolerance
+            )
+            postdecimal_chars = classify_patches_deterministic(
+                image, postdecimal_positions, tolerance
+            )
 
-            return ''.join(predecimal_chars) + '.' + ''.join(postdecimal_chars)
+            return "".join(predecimal_chars) + "." + "".join(postdecimal_chars)
     # If we fell out of the loop because we didn't find the decimal, we can't classify the exposure time.
     return None
 
+
 def classify_filename_string(image, tolerance=0.85):
+    """
+    Classify filename string from an image using deterministic patch classification.
+
+    :param image: The input image as a 2D array.
+    :param tolerance: The minimum similarity score required for a match.
+    :return: A formatted filename string.
+    """
     image = np.asarray(image, dtype=np.float32).reshape(IMAGE_DIMENSIONS)
     chars = classify_patches_deterministic(image, FILENAME_POS, tolerance)
-    return ''.join(chars)
+    return "".join(chars)
+
 
 def classify_fields_block(block):
+    """
+    Classify fields from a block of images using deterministic patch classification.
+
+    :param block: A list of images as 2D arrays.
+    :return: A DataFrame with classified fields for each image in the block.
+    """
     results = []
     for img in block:
-        results.append({
-            'date': classify_date_string(img),
-            'time': classify_time_string(img),
-            'exposure': classify_exposure_string(img),
-            'filename': classify_filename_string(img),
-            # TODO: fields related to the image content
-        })
+        results.append(
+            {
+                "date": classify_date_string(img),
+                "time": classify_time_string(img),
+                "exposure": classify_exposure_string(img),
+                "filename": classify_filename_string(img),
+            }
+        )
     return pd.DataFrame.from_records(results)

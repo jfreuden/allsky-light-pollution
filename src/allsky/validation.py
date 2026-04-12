@@ -1,10 +1,17 @@
 import calendar
 import re
-from narwhals import Series
+
+from pandas import Series
 
 
 def is_valid_date(value: str) -> bool:
-    """Validate '20YY/MM/DD' with YY in 10..26 and calendar-correct day."""
+    """
+    Validate '20YY/MM/DD' with YY in 10..26 and calendar-correct day.
+
+    :param value: The date string to validate.
+    :return: True if the date is valid, False otherwise.
+    :rtype: bool
+    """
     if not isinstance(value, str):
         return False
 
@@ -25,7 +32,21 @@ def is_valid_date(value: str) -> bool:
 
 
 def is_valid_time(value: str) -> bool:
-    """Validate 'HH:MM:SS' with HH 00..23, MM 00..59, SS 00..60."""
+    """
+    Determines whether a given string is a valid time format (HH:MM:SS).
+
+    A valid time format string should match the pattern HH:MM:SS where:
+    - HH is a two-digit hour (00-23).
+    - MM is a two-digit minute (00-59).
+    - SS is a two-digit second (00-60). (60 is allowed for leap seconds)
+
+    The function verifies both the structural format and the numerical ranges
+    of hour, minute, and second components.
+
+    :param value: String representation of time to be validated.
+    :return: True if the given string is in valid time format, otherwise False.
+    :rtype: bool
+    """
     if not isinstance(value, str):
         return False
 
@@ -41,7 +62,13 @@ def is_valid_time(value: str) -> bool:
 
 
 def is_valid_exposure(value: str) -> bool:
-    """Validate exposure time with format 'N.DDDD' or 'N.DDDDs' where 0 <= N <= 30."""
+    """
+    Validate exposure time with format 'N.DDDD' or 'N.DDDDs' where 0 <= N <= 60.
+    :param value: The exposure time string to validate.
+    :type value: str
+    :return: True if the exposure time is valid, False otherwise.
+    :rtype: bool
+    """
     if not isinstance(value, str):
         return False
 
@@ -54,14 +81,26 @@ def is_valid_exposure(value: str) -> bool:
 
 
 def is_valid_filename(value: str) -> bool:
-    """Validate filename consisting of exactly nine digits."""
+    """
+    Validate filename consisting of exactly nine digits.
+    :param value: The filename string to validate.
+    :type value: str
+    :return: True if the filename is valid, False otherwise.
+    :rtype: bool
+    """
     return isinstance(value, str) and re.fullmatch(r"\d{9}", value) is not None
+
 
 def is_valid_row(row) -> bool:
     """Validate a parsed record row by checking every expected column.
     Designed to work with:
       - pandas.DataFrame.apply(is_valid_row, axis=1)
       - dask.dataframe.DataFrame.apply(is_valid_row, axis=1, meta=(..., bool))
+
+    :param row: A single row of a parsed dataframe.
+    :type row: pandas.Series
+    :return: True if the row is valid, False otherwise.
+    :rtype: bool
     """
     return (
         is_valid_date(row["date"])
@@ -70,8 +109,15 @@ def is_valid_row(row) -> bool:
         and is_valid_filename(row["filename"])
     )
 
+
 def invalid_columns(row) -> list[str]:
-    """Return the names of invalid columns in a parsed record row."""
+    """
+    Return the names of invalid columns in a parsed record row.
+    :param row: A single row of a parsed dataframe.
+    :type row: pandas.Series
+    :return: List of column names that are invalid.
+    :rtype: list[str]
+    """
     invalid = []
 
     if not is_valid_date(row["date"]):
@@ -85,27 +131,62 @@ def invalid_columns(row) -> list[str]:
 
     return invalid
 
+
 def is_valid_date_series(dataframe) -> Series[bool]:
-    """Validate the datestring column of the parsed dataframe."""
+    """
+    Validate the datestring column of the parsed dataframe.
+    :param dataframe: The parsed dataframe.
+    :type dataframe: pandas.DataFrame
+    :return: Series of boolean indicating validity of each row.
+    :rtype: pandas.Series[bool]
+    """
     return dataframe["date"].apply(is_valid_date, meta=(..., bool))
 
+
 def is_valid_time_series(dataframe) -> Series[bool]:
-    """Validate the timestamp column of the parsed dataframe."""
+    """
+    Validate the timestamp column of the parsed dataframe.
+    :param dataframe: The parsed dataframe.
+    :type dataframe: pandas.DataFrame
+    :return: Series of boolean indicating validity of each row.
+    :rtype: pandas.Series[bool]
+    """
     return dataframe["time"].apply(is_valid_time, meta=(..., bool))
 
+
 def is_valid_exposure_series(dataframe) -> Series[bool]:
-    """Validate the exposure column of the parsed dataframe."""
+    """
+    Validate the exposure column of the parsed dataframe.
+    :param dataframe: The parsed dataframe.
+    :type dataframe: pandas.DataFrame
+    :return: Series of boolean indicating validity of each row.
+    :rtype: pandas.Series[bool]
+    """
     return dataframe["exposure"].apply(is_valid_exposure, meta=(..., bool))
 
+
 def is_valid_filename_series(dataframe) -> Series[bool]:
-    """Validate the filename column of the parsed dataframe."""
+    """
+    Validate the filename column of the parsed dataframe.
+    :param dataframe: The parsed dataframe.
+    :type dataframe: pandas.DataFrame
+    :return: Series of boolean indicating validity of each row.
+    :rtype: pandas.Series[bool]
+    """
     return dataframe["filename"].apply(is_valid_filename, meta=(..., bool))
 
+
 def is_valid_record_series(dataframe) -> Series[bool]:
-    """Validate the parsed dataframe."""
+    """
+    Validate the parsed dataframe.
+    :param dataframe: The parsed dataframe.
+    :type dataframe: pandas.DataFrame
+    :return: Series of boolean indicating validity of each row.
+    :rtype: pandas.Series[bool]
+    """
     return (
-        is_valid_date_series(dataframe) &
-        is_valid_time_series(dataframe) &
-        is_valid_exposure_series(dataframe) &
-        is_valid_filename_series(dataframe)
+        is_valid_date_series(dataframe)
+        & is_valid_time_series(dataframe)
+        & is_valid_exposure_series(dataframe)
+        & is_valid_filename_series(dataframe)
     )

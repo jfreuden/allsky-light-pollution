@@ -1,6 +1,7 @@
-import allsky.classifiers as classifiers
-from dask.array.image import imread
 import numpy as np
+from dask.array.image import imread
+
+import allsky.classifiers as classifiers
 
 char_width = classifiers.char_width
 char_height = classifiers.char_height
@@ -21,7 +22,13 @@ decimal_template = None
 decimal_template_norm = None
 IMAGE_DIMENSIONS = (480, 640, 3)
 
+
 def initialize_antialiased_classifiers():
+    """
+    Initialize global variables for antialiased classifiers. These override the default classifiers.
+
+    Loads atlas images and precomputes character and symbol glyphs for classification.
+    """
     global atlas_image, char_atlas, symb_atlas, atlas_charcount
     global char_atlas_chars, char_glyphs, digit_templates, digit_template_norms
     global decimal_template, decimal_template_norm
@@ -29,17 +36,28 @@ def initialize_antialiased_classifiers():
     if atlas_image is not None:
         return
 
-    atlas_image = imread('../../images/AllSkyImages/antialias-atlas.bmp')
+    atlas_image = imread("../../images/AllSkyImages/antialias-atlas.bmp")
     char_atlas = atlas_image[0][:8, :]
     symb_atlas = atlas_image[0][8:, :]
     atlas_charcount = char_atlas.shape[1] // char_width
 
-    char_atlas_chars = char_atlas.reshape(8, atlas_charcount, char_width, 3).transpose(1, 0, 2, 3).astype(np.float32).compute()
+    char_atlas_chars = (
+        char_atlas.reshape(8, atlas_charcount, char_width, 3)
+        .transpose(1, 0, 2, 3)
+        .astype(np.float32)
+        .compute()
+    )
     char_glyphs = dict(zip(atlas_chars, char_atlas_chars))
 
-    digit_templates = np.stack([char_glyphs[ch] for ch in atlas_chars]).astype(np.float32)
-    digit_templates = digit_templates - digit_templates.mean(axis=(1, 2, 3), keepdims=True)
-    digit_template_norms = np.sqrt(np.sum(digit_templates * digit_templates, axis=(1, 2, 3))) + 1e-6
+    digit_templates = np.stack([char_glyphs[ch] for ch in atlas_chars]).astype(
+        np.float32
+    )
+    digit_templates = digit_templates - digit_templates.mean(
+        axis=(1, 2, 3), keepdims=True
+    )
+    digit_template_norms = (
+        np.sqrt(np.sum(digit_templates * digit_templates, axis=(1, 2, 3))) + 1e-6
+    )
     digit_templates = digit_templates.reshape(digit_templates.shape[0], -1)
 
     decimal_template = symb_atlas[:, 6:9].astype(np.float32)
@@ -57,6 +75,7 @@ def initialize_antialiased_classifiers():
     classifiers.decimal_template = decimal_template
     classifiers.decimal_template_norm = decimal_template_norm
     classifiers.IMAGE_DIMENSIONS = IMAGE_DIMENSIONS
+
 
 initialize_antialiased_classifiers()
 

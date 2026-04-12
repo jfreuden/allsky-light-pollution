@@ -1,6 +1,6 @@
-import numpy as np
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 # Plotting Helper functions
@@ -77,6 +77,7 @@ def _weighted_fit_line(x, y, yerr):
         "b": b,
     }
 
+
 alias_labels = {
     "D": "Nightly ",
     "W": "Weekly ",
@@ -85,22 +86,42 @@ alias_labels = {
     "A": "Yearly ",
     "H": "Hourly ",
     "T": "",
-    "min": ""
+    "min": "",
 }
 
-def plot_brightness(input_df, title_suffix=None, period="D", ax=None, plot_best_fit=True):
-    """Plot the brightness of the dataset. The "brightness" is defined as the average of the pixel values of the masked input image."""
+
+def plot_brightness(
+    input_df, title_suffix=None, period="D", ax=None, plot_best_fit=True
+):
+    """
+    Plot the brightness of the dataset. The "brightness" is defined as the average of the pixel values of the masked input image.
+
+    :param input_df: The input DataFrame containing brightness data.
+        Expects columns 'timestamp', 'image_mean', 'image_std', and 'exposure'.
+    :param title_suffix: Optional suffix for the plot title.
+    :param period: The time period for grouping data (pandas period suffixes, e.g., 'D' for daily, 'W' for weekly).
+    :param ax: Optional matplotlib axis for plotting.
+    :param plot_best_fit: Whether to plot the best fit line.
+    """
     df = input_df[["timestamp", "image_mean", "image_std", "exposure"]].copy()
 
-    plot_df = df.groupby(df["timestamp"].dt.to_period(period)).agg(
-        mean_image_mean=("image_mean", "mean"),
-        n=("image_mean", "size"),
-        pooled_image_std=("image_std", lambda s: np.sqrt(np.mean(s ** 2))),
-    ).reset_index()
+    plot_df = (
+        df.groupby(df["timestamp"].dt.to_period(period))
+        .agg(
+            mean_image_mean=("image_mean", "mean"),
+            n=("image_mean", "size"),
+            pooled_image_std=("image_std", lambda s: np.sqrt(np.mean(s**2))),
+        )
+        .reset_index()
+    )
 
     plot_df["date"] = plot_df["timestamp"].dt.to_timestamp()
     plot_df["error"] = plot_df["pooled_image_std"] / np.sqrt(plot_df["n"])
-    plot_df = plot_df.drop(columns=["timestamp"]).dropna(subset=["date", "mean_image_mean", "error"]).sort_values("date")
+    plot_df = (
+        plot_df.drop(columns=["timestamp"])
+        .dropna(subset=["date", "mean_image_mean", "error"])
+        .sort_values("date")
+    )
 
     x = mdates.date2num(np.array(plot_df["date"]))
     y = plot_df["mean_image_mean"].to_numpy(dtype=float)
@@ -118,21 +139,36 @@ def plot_brightness(input_df, title_suffix=None, period="D", ax=None, plot_best_
         fig = ax.figure
 
     ax.errorbar(
-        plot_df["date"], y, yerr=yerr,
-        fmt="o", markersize=3, capsize=3, alpha=0.5,
+        plot_df["date"],
+        y,
+        yerr=yerr,
+        fmt="o",
+        markersize=3,
+        capsize=3,
+        alpha=0.5,
         label="Daily mean ± error",
     )
 
     if plot_best_fit:
         ax.plot(
-            dates_grid, fit["y_grid"],
-            color="red", linewidth=2,
-            label=("Constant fit" if len(fit["x"]) == 1 else f"Weighted fit: y = {fit['m']:.4g}x + {fit['b']:.4g}"),
+            dates_grid,
+            fit["y_grid"],
+            color="red",
+            linewidth=2,
+            label=(
+                "Constant fit"
+                if len(fit["x"]) == 1
+                else f"Weighted fit: y = {fit['m']:.4g}x + {fit['b']:.4g}"
+            ),
         )
         if len(fit["x"]) > 1:
             ax.fill_between(
-                dates_grid, fit["y_lower"], fit["y_upper"],
-                color="red", alpha=0.2, label="95% confidence band",
+                dates_grid,
+                fit["y_lower"],
+                fit["y_upper"],
+                color="red",
+                alpha=0.2,
+                label="95% confidence band",
             )
 
     ax.set_xlabel("Date")
@@ -145,18 +181,37 @@ def plot_brightness(input_df, title_suffix=None, period="D", ax=None, plot_best_
 
 
 def plot_exposure(input_df, title_suffix=None, period="D", ax=None, plot_best_fit=True):
-    """Plot the exposure time of the dataset."""
+    """
+    Plot the exposure time of the dataset. The "brightness" is defined as the average of the pixel values of the masked input image.
+
+    :param input_df: The input DataFrame containing exposure data.
+        Expects columns 'timestamp', 'image_mean', 'image_std', and 'exposure'.
+    :param title_suffix: Optional suffix for the plot title.
+    :param period: The time period for grouping data (pandas period suffixes, e.g., 'D' for daily, 'W' for weekly).
+    :param ax: Optional matplotlib axis for plotting.
+    :param plot_best_fit: Whether to plot the best fit line.
+    """
     df = input_df[["timestamp", "image_mean", "image_std", "exposure"]].copy()
 
-    exposure_daily = df.groupby(df["timestamp"].dt.to_period(period)).agg(
-        mean_exposure=("exposure", "mean"),
-        n=("exposure", "size"),
-        exposure_std=("exposure", "std"),
-    ).reset_index()
+    exposure_daily = (
+        df.groupby(df["timestamp"].dt.to_period(period))
+        .agg(
+            mean_exposure=("exposure", "mean"),
+            n=("exposure", "size"),
+            exposure_std=("exposure", "std"),
+        )
+        .reset_index()
+    )
 
     exposure_daily["date"] = exposure_daily["timestamp"].dt.to_timestamp()
-    exposure_daily["error"] = exposure_daily["exposure_std"] / np.sqrt(exposure_daily["n"])
-    exposure_daily = exposure_daily.drop(columns=["timestamp"]).dropna(subset=["date", "mean_exposure"]).sort_values("date")
+    exposure_daily["error"] = exposure_daily["exposure_std"] / np.sqrt(
+        exposure_daily["n"]
+    )
+    exposure_daily = (
+        exposure_daily.drop(columns=["timestamp"])
+        .dropna(subset=["date", "mean_exposure"])
+        .sort_values("date")
+    )
 
     plot_df = exposure_daily.dropna(subset=["error"])
     x = mdates.date2num(np.array(plot_df["date"]))
@@ -175,22 +230,37 @@ def plot_exposure(input_df, title_suffix=None, period="D", ax=None, plot_best_fi
         fig = ax.figure
 
     ax.errorbar(
-        plot_df["date"], y, yerr=yerr,
-        fmt="o", markersize=3, capsize=3, alpha=0.6,
+        plot_df["date"],
+        y,
+        yerr=yerr,
+        fmt="o",
+        markersize=3,
+        capsize=3,
+        alpha=0.6,
         label="Nightly mean exposure ± error",
     )
 
     if plot_best_fit:
         ax.plot(
-            dates_grid, fit["y_grid"],
-            color="red", linewidth=2,
-            label=("Constant fit" if len(fit["x"]) == 1 else f"Weighted fit: y = {fit['m']:.4g}x + {fit['b']:.4g}"),
+            dates_grid,
+            fit["y_grid"],
+            color="red",
+            linewidth=2,
+            label=(
+                "Constant fit"
+                if len(fit["x"]) == 1
+                else f"Weighted fit: y = {fit['m']:.4g}x + {fit['b']:.4g}"
+            ),
         )
 
         if len(fit["x"]) > 1:
             ax.fill_between(
-                dates_grid, fit["y_lower"], fit["y_upper"],
-                color="red", alpha=0.2, label="95% confidence band",
+                dates_grid,
+                fit["y_lower"],
+                fit["y_upper"],
+                color="red",
+                alpha=0.2,
+                label="95% confidence band",
             )
 
     ax.set_xlabel("Date")
@@ -202,29 +272,53 @@ def plot_exposure(input_df, title_suffix=None, period="D", ax=None, plot_best_fi
     return ax
 
 
-def plot_synthetic_luminous_flux(input_df, title_suffix=None, period="D", ax=None, plot_best_fit=True):
-    """Plot the synthetic luminous flux of the dataset.
+def plot_synthetic_luminous_flux(
+    input_df, title_suffix=None, period="D", ax=None, plot_best_fit=True
+):
+    """
+    Plot the synthetic luminous flux of the dataset.
     The 'synthetic luminous flux' is defined as the average brightness per unit of exposure time.
-    This enables comparing same-real-brightness images that are darker / brighter due to exposure time only."""
+    This enables comparing same-real-brightness images that are darker / brighter due to exposure time only.
+
+    :param input_df: The input DataFrame containing brightness and exposure data.
+        Expects columns 'timestamp', 'image_mean', 'image_std', and 'exposure'.
+    :param title_suffix: Optional suffix for the plot title.
+    :param period: The time period for grouping data (pandas period suffixes, e.g., 'D' for daily, 'W' for weekly).
+    :param ax: Optional matplotlib axis for plotting.
+    :param plot_best_fit: Whether to plot the best fit line.
+    """
     df = input_df[["timestamp", "image_mean", "image_std", "exposure"]].copy()
     df = df.assign(luminous_flux=df["image_mean"] / df["exposure"])
-    df = df.dropna(subset=["timestamp", "image_mean", "image_std", "exposure", "luminous_flux"])
+    df = df.dropna(
+        subset=["timestamp", "image_mean", "image_std", "exposure", "luminous_flux"]
+    )
 
     sigma_exposure = 0.0
     df["luminous_flux_error"] = np.sqrt(
-        (df["image_std"] / df["exposure"])**2 +
-        ((df["image_mean"] * sigma_exposure) / (df["exposure"]**2))**2
+        (df["image_std"] / df["exposure"]) ** 2
+        + ((df["image_mean"] * sigma_exposure) / (df["exposure"] ** 2)) ** 2
     )
 
-    daily = df.groupby(df["timestamp"].dt.to_period(period)).agg(
-        mean_luminous_flux=("luminous_flux", "mean"),
-        n=("luminous_flux", "size"),
-        flux_error_rss=("luminous_flux_error", lambda s: np.sqrt(np.sum(np.square(s))) / len(s)),
-    ).reset_index()
+    daily = (
+        df.groupby(df["timestamp"].dt.to_period(period))
+        .agg(
+            mean_luminous_flux=("luminous_flux", "mean"),
+            n=("luminous_flux", "size"),
+            flux_error_rss=(
+                "luminous_flux_error",
+                lambda s: np.sqrt(np.sum(np.square(s))) / len(s),
+            ),
+        )
+        .reset_index()
+    )
 
     daily["date"] = daily["timestamp"].dt.to_timestamp()
     daily["error"] = daily["flux_error_rss"]
-    daily = daily.drop(columns=["timestamp"]).dropna(subset=["date", "mean_luminous_flux"]).sort_values("date")
+    daily = (
+        daily.drop(columns=["timestamp"])
+        .dropna(subset=["date", "mean_luminous_flux"])
+        .sort_values("date")
+    )
 
     plot_df = daily.dropna(subset=["error"])
     x = mdates.date2num(np.array(plot_df["date"]))
@@ -243,22 +337,37 @@ def plot_synthetic_luminous_flux(input_df, title_suffix=None, period="D", ax=Non
         fig = ax.figure
 
     ax.errorbar(
-            plot_df["date"], y, yerr=yerr,
-            fmt="o", markersize=3, capsize=3, alpha=0.6,
-            label="Nightly mean luminous flux ± error",
+        plot_df["date"],
+        y,
+        yerr=yerr,
+        fmt="o",
+        markersize=3,
+        capsize=3,
+        alpha=0.6,
+        label="Nightly mean luminous flux ± error",
     )
 
     if plot_best_fit:
         ax.plot(
-            dates_grid, fit["y_grid"],
-            color="red", linewidth=2,
-            label=("Constant fit" if len(fit["x"]) == 1 else f"Weighted fit: y = {fit['m']:.4g}x + {fit['b']:.4g}"),
+            dates_grid,
+            fit["y_grid"],
+            color="red",
+            linewidth=2,
+            label=(
+                "Constant fit"
+                if len(fit["x"]) == 1
+                else f"Weighted fit: y = {fit['m']:.4g}x + {fit['b']:.4g}"
+            ),
         )
 
         if len(fit["x"]) > 1:
             ax.fill_between(
-                dates_grid, fit["y_lower"], fit["y_upper"],
-                color="red", alpha=0.2, label="95% confidence band",
+                dates_grid,
+                fit["y_lower"],
+                fit["y_upper"],
+                color="red",
+                alpha=0.2,
+                label="95% confidence band",
             )
 
     ax.set_xlabel("Date")
