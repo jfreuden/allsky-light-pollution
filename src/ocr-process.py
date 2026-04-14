@@ -1,18 +1,19 @@
 # Based upon project work by Claire Su and William Qiu at https://www.idapgh.org/data-analysis-of-the-allegheny-observatory
 # Processes the embedded text in the image data into a dataframe and saves it to a CSV file
 import os
-from PIL import Image
-from PIL.Image import Resampling
-from pandas import DataFrame
 
 import pyocr.builders
+from pandas import DataFrame
+from PIL import Image
+from PIL.Image import Resampling
+
 ocr = pyocr.get_available_tools()[1]
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Finds the name of all images in a folder
-    filePath = r'../../images/AllSkyImages/2010-08/'
+    filePath = r"../../images/AllSkyImages/2010-08/"
     allImages = os.listdir(filePath)
-    allImages = sorted(filter(lambda x: x.endswith('.JPG'), allImages))
+    allImages = sorted(filter(lambda x: x.endswith(".JPG"), allImages))
     # Important data lists
     date = []
     time = []
@@ -33,25 +34,33 @@ if __name__ == '__main__':
         bottom_height = 20
 
         top_block = image.crop((0, 0, block_width, top_height))
-        top_block = top_block.convert('L')
-        bottom_block = image.crop((0, full_height - bottom_height, block_width, full_height))
-        bottom_block = bottom_block.convert('L')
+        top_block = top_block.convert("L")
+        bottom_block = image.crop(
+            (0, full_height - bottom_height, block_width, full_height)
+        )
+        bottom_block = bottom_block.convert("L")
 
-        stat_block = Image.new('RGB', (block_width, top_height + bottom_height))
+        stat_block = Image.new("RGB", (block_width, top_height + bottom_height))
         stat_block.paste(top_block, (0, 0))
         stat_block.paste(bottom_block, (0, top_height))
-        stat_block = stat_block.resize((3 * block_width, 2 * (top_height + bottom_height)), Resampling.LANCZOS)
+        stat_block = stat_block.resize(
+            (3 * block_width, 2 * (top_height + bottom_height)), Resampling.LANCZOS
+        )
 
-        txt = ocr.image_to_string(stat_block, lang='eng', builder=pyocr.builders.TextBuilder())
+        txt = ocr.image_to_string(
+            stat_block, lang="eng", builder=pyocr.builders.TextBuilder()
+        )
 
         newData = txt.splitlines()
         if len(newData) != 5:
-            print(f'Unexpected number of text lines in image: {file}, {len(newData)} instead of 5.')
+            print(
+                f"Unexpected number of text lines in image: {file}, {len(newData)} instead of 5."
+            )
             continue
 
         date.append(newData[0])
         time.append(newData[1])
-        exposure.append(newData[2].removesuffix('s'))
+        exposure.append(newData[2].removesuffix("s"))
 
         # Averages of the pixels in RGB
         pixelNW = image.getpixel((310, 230))
@@ -61,7 +70,9 @@ if __name__ == '__main__':
         pixelCenter = image.getpixel((320, 240))
         pixelAvg = []
         for i in range(3):
-            pixelAvg.append((pixelNW[i] + pixelNE[i] + pixelSW[i] + pixelSE[i] + pixelCenter[i]) / 5)
+            pixelAvg.append(
+                (pixelNW[i] + pixelNE[i] + pixelSW[i] + pixelSE[i] + pixelCenter[i]) / 5
+            )
 
         # Adds each pixel average
         imageRGB.append(pixelAvg)
@@ -70,14 +81,15 @@ if __name__ == '__main__':
         imageNumber.append(file)
 
     # Converts the following lists to a CSV
-    df = DataFrame({
-        "Date": date,
-        "Time": time,
-        "Exposure Time (s)": exposure,
-        "Average Pixel Brightness": imageRGB,
-        "File Number": imageNumber
-    })
-    df.to_csv('allsky.csv')
+    df = DataFrame(
+        {
+            "Date": date,
+            "Time": time,
+            "Exposure Time (s)": exposure,
+            "Average Pixel Brightness": imageRGB,
+            "File Number": imageNumber,
+        }
+    )
+    df.to_csv("allsky.csv")
 
-    print('done')
-
+    print("done")

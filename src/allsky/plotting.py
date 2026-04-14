@@ -92,7 +92,7 @@ alias_labels = {
 
 def plot_brightness(
     input_df, title_suffix=None, period="D", ax=None, plot_best_fit=True
-):
+) -> plt.Axes:
     """
     Plot the brightness of the dataset. The "brightness" is defined as the average of the pixel values of the masked input image.
 
@@ -180,7 +180,9 @@ def plot_brightness(
     return ax
 
 
-def plot_exposure(input_df, title_suffix=None, period="D", ax=None, plot_best_fit=True):
+def plot_exposure(
+    input_df, title_suffix=None, period="D", ax=None, plot_best_fit=True
+) -> plt.Axes:
     """
     Plot the exposure time of the dataset. The "brightness" is defined as the average of the pixel values of the masked input image.
 
@@ -274,7 +276,7 @@ def plot_exposure(input_df, title_suffix=None, period="D", ax=None, plot_best_fi
 
 def plot_synthetic_luminous_flux(
     input_df, title_suffix=None, period="D", ax=None, plot_best_fit=True
-):
+) -> plt.Axes:
     """
     Plot the synthetic luminous flux of the dataset.
     The 'synthetic luminous flux' is defined as the average brightness per unit of exposure time.
