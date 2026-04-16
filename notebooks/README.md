@@ -1,0 +1,25 @@
+# Notebooks
+
+- Conclusions
+  - [acquisition-method-unsuitable.ipynb](notebooks/conclusions/acquisition-method-unsuitable.ipynb)
+- Experimental
+  - [apply-pca-2d-to-images.ipynb](notebooks/experimental/apply-pca-2d-to-images.ipynb)
+  - [apply-pca-3d-visualization.ipynb](notebooks/experimental/apply-pca-3d-visualization.ipynb)
+  - [solar-lunar-ephem.ipynb](notebooks/experimental/solar-lunar-ephem.ipynb)
+- Exploratory
+  - [explore-fits-exposures.ipynb](notebooks/exploratory/explore-fits-exposures.ipynb)
+  - [solve-antialiased-parse.ipynb](notebooks/exploratory/solve-antialiased-parse.ipynb)
+  - [study-fit-vs-jpg-calibration.ipynb](notebooks/exploratory/study-fit-vs-jpg-calibration.ipynb)
+- Exploratory: All Parsed Data
+  - [exposure-time-only-analysis.ipynb](notebooks/exploratory-all-parsed/exposure-time-only-analysis.ipynb)
+- Exploratory: Selected data subset
+  - [full-range-enriched.ipynb](notebooks/exploratory-nights-filtered/full-range-enriched.ipynb)
+  - [full-range-exposure-only.ipynb](notebooks/exploratory-nights-filtered/full-range-exposure-only.ipynb)
+  - [streetlight-modernization-optimized.ipynb](notebooks/exploratory-nights-filtered/streetlight-modernization-optimized.ipynb)
+- Processing
+  - [alias-parse-regression-testing.ipynb](notebooks/processing/alias-parse-regression-testing.ipynb)
+  - [antialias-parse.ipynb](notebooks/processing/antialias-parse.ipynb)
+  - [brute-force-parse.ipynb](notebooks/processing/brute-force-parse.ipynb)
+  - [generate-enriched-df.ipynb](notebooks/processing/generate-enriched-df.ipynb)
+  - [generate-ideal-df.ipynb](notebooks/processing/generate-ideal-df.ipynb)
+  - [validate-missing-source-data.ipynb](notebooks/processing/validate-missing-source-data.ipynb)

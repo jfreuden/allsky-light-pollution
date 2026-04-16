@@ -132,57 +132,57 @@ def invalid_columns(row) -> list[str]:
     return invalid
 
 
-def is_valid_date_series(dataframe) -> Series[bool]:
+def is_valid_date_series(dataframe) -> Series:
     """
     Validate the datestring column of the parsed dataframe.
     :param dataframe: The parsed dataframe.
     :type dataframe: pandas.DataFrame
     :return: Series of boolean indicating validity of each row.
-    :rtype: pandas.Series[bool]
+    :rtype: pandas.Series
     """
     return dataframe["date"].apply(is_valid_date, meta=(..., bool))
 
 
-def is_valid_time_series(dataframe) -> Series[bool]:
+def is_valid_time_series(dataframe) -> Series:
     """
     Validate the timestamp column of the parsed dataframe.
     :param dataframe: The parsed dataframe.
     :type dataframe: pandas.DataFrame
     :return: Series of boolean indicating validity of each row.
-    :rtype: pandas.Series[bool]
+    :rtype: pandas.Series
     """
     return dataframe["time"].apply(is_valid_time, meta=(..., bool))
 
 
-def is_valid_exposure_series(dataframe) -> Series[bool]:
+def is_valid_exposure_series(dataframe) -> Series:
     """
     Validate the exposure column of the parsed dataframe.
     :param dataframe: The parsed dataframe.
     :type dataframe: pandas.DataFrame
     :return: Series of boolean indicating validity of each row.
-    :rtype: pandas.Series[bool]
+    :rtype: pandas.Series
     """
     return dataframe["exposure"].apply(is_valid_exposure, meta=(..., bool))
 
 
-def is_valid_filename_series(dataframe) -> Series[bool]:
+def is_valid_filename_series(dataframe) -> Series:
     """
     Validate the filename column of the parsed dataframe.
     :param dataframe: The parsed dataframe.
     :type dataframe: pandas.DataFrame
     :return: Series of boolean indicating validity of each row.
-    :rtype: pandas.Series[bool]
+    :rtype: pandas.Series
     """
     return dataframe["filename"].apply(is_valid_filename, meta=(..., bool))
 
 
-def is_valid_record_series(dataframe) -> Series[bool]:
+def is_valid_record_series(dataframe) -> Series:
     """
     Validate the parsed dataframe.
     :param dataframe: The parsed dataframe.
     :type dataframe: pandas.DataFrame
     :return: Series of boolean indicating validity of each row.
-    :rtype: pandas.Series[bool]
+    :rtype: pandas.Series
     """
     return (
         is_valid_date_series(dataframe)
