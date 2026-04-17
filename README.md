@@ -7,6 +7,11 @@ Unfortunately, due to complications in data acquisition and storage, we were una
 
 We make this project publicly available to the community for educational purposes. The code and notes are licensed under the MIT License.
 
+## Selected Plots
+<img width="1189" height="490" alt="image" src="https://github.com/user-attachments/assets/ad1a1586-aebe-4997-ac8c-bd7d283fae36" />
+<img width="1189" height="490" alt="image" src="https://github.com/user-attachments/assets/2504a1f8-6514-429e-94a8-074fbf56a64f" />
+
+
 ## Table of Contents
 
 ### [Data](data/)
@@ -16,6 +21,8 @@ We include preprocessed data from the image set in a columnar format. There are 
 
 ### [Images](images/)
 We do not include the raw images in this repository, but we do include [instructions](images/instructions.md) for acquiring the images and how to store them for compatibility with our code.
+
+<img width="640" height="480" alt="AllSkyImage000197127" src="https://github.com/user-attachments/assets/aba36e21-e85b-4a42-aa23-6ad785db52ad" />
 
 ### [Writeup](docs/writeup.md)
 
