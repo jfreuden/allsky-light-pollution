@@ -1,25 +1,25 @@
 # Notebooks
 
 - Conclusions
-  - [acquisition-method-unsuitable.ipynb](notebooks/conclusions/acquisition-method-unsuitable.ipynb)
+  - [acquisition-method-unsuitable.ipynb](notebooks/conclusions/acquistion-method-unsuitable.ipynb): This notebook shows the two main plots that support our conclusion that our acquisition method was unsuitable for scientific use.
 - Experimental
-  - [apply-pca-2d-to-images.ipynb](notebooks/experimental/apply-pca-2d-to-images.ipynb)
-  - [apply-pca-3d-visualization.ipynb](notebooks/experimental/apply-pca-3d-visualization.ipynb)
-  - [solar-lunar-ephem.ipynb](notebooks/experimental/solar-lunar-ephem.ipynb)
+  - [apply-pca-2d-to-images.ipynb](notebooks/experimental/apply-pca-2d-to-images.ipynb): This notebook demonstrates how to apply PCA to images to reduce the dimensionality. We investigated machine learning classification techniques to select clear night imagery, but ultimately hand-filtered the images for a narrow time window covering the primary period of interest.
+  - [apply-pca-3d-visualization.ipynb](notebooks/experimental/apply-pca-3d-visualization.ipynb): We visualize the PCA projections of some images in 3D. The subsets of imagery clearly group together, implying the feasibility of automated classification techniques.
+  - [solar-lunar-ephem.ipynb](notebooks/experimental/solar-lunar-ephem.ipynb): We studied the `skyfield` package to determine the position of the sun and moon in the sky, which we used to filter out images that were illuminated by the moon or the sun.
 - Exploratory
-  - [explore-fits-exposures.ipynb](notebooks/exploratory/explore-fits-exposures.ipynb)
-  - [solve-antialiased-parse.ipynb](notebooks/exploratory/solve-antialiased-parse.ipynb)
-  - [study-fit-vs-jpg-calibration.ipynb](notebooks/exploratory/study-fit-vs-jpg-calibration.ipynb)
+  - [explore-fits-exposures.ipynb](notebooks/exploratory/explore-fits-exposures.ipynb): We explore the fits files and exposure times of the images. The objective was to determine if we could learn what the FITS format would provide our analysis.
+  - [solve-antialiased-parse.ipynb](notebooks/exploratory/solve-antialiased-parse.ipynb): This early notebook investigated the parsing approach we used to read the text off the images.
+  - [study-fit-vs-jpg-calibration.ipynb](notebooks/exploratory/study-fit-vs-jpg-calibration.ipynb): We studied if we could understand the relationship between the JPG and FITS outputs in hopes to conclusively determine the calibration of the camera, and when the settings were changed - automatically or otherwise.
 - Exploratory: All Parsed Data
-  - [exposure-time-only-analysis.ipynb](notebooks/exploratory-all-parsed/exposure-time-only-analysis.ipynb)
+  - [exposure-time-only-analysis.ipynb](notebooks/exploratory-all-parsed/exposure-time-only-analysis.ipynb): This notebook explores the exposure time of the images, attempting to determine a relationship between exposure time and light pollution without needing to process the imagery itself (beyond parsing).
 - Exploratory: Selected data subset
-  - [full-range-enriched.ipynb](notebooks/exploratory-nights-filtered/full-range-enriched.ipynb)
-  - [full-range-exposure-only.ipynb](notebooks/exploratory-nights-filtered/full-range-exposure-only.ipynb)
-  - [streetlight-modernization-optimized.ipynb](notebooks/exploratory-nights-filtered/streetlight-modernization-optimized.ipynb)
+  - [full-range-enriched.ipynb](notebooks/exploratory-nights-filtered/full-range-enriched.ipynb): This notebook explores the enriched data, factoring exposure time and image brightness into the analysis.
+  - [full-range-exposure-only.ipynb](notebooks/exploratory-nights-filtered/full-range-exposure-only.ipynb): This notebook studied the exposure time more closely, attempting to ascertain how the camera chose a time for each exposure.
+  - [streetlight-modernization-optimized.ipynb](notebooks/exploratory-nights-filtered/streetlight-modernization-optimized.ipynb): This notebook explores the data specifically during the streetlight modernization, taking place from May 2025 onward.
 - Processing
-  - [alias-parse-regression-testing.ipynb](notebooks/processing/alias-parse-regression-testing.ipynb)
-  - [antialias-parse.ipynb](notebooks/processing/antialias-parse.ipynb)
-  - [brute-force-parse.ipynb](notebooks/processing/brute-force-parse.ipynb)
-  - [generate-enriched-df.ipynb](notebooks/processing/generate-enriched-df.ipynb)
-  - [generate-ideal-df.ipynb](notebooks/processing/generate-ideal-df.ipynb)
-  - [validate-missing-source-data.ipynb](notebooks/processing/validate-missing-source-data.ipynb)
+  - [alias-parse-regression-testing.ipynb](notebooks/processing/alias-parse-regression-testing.ipynb): This notebook was used to ensure changes to parsing wouldn't break earlier work.
+  - [antialias-parse.ipynb](notebooks/processing/antialias-parse.ipynb): This notebook was used to parse the images and monitor the progress of the parsing process.
+  - [brute-force-parse.ipynb](notebooks/processing/brute-force-parse.ipynb): This notebook was used to parse the images and monitor the progress of the parsing process, using a brute force approach.
+  - [generate-enriched-df.ipynb](notebooks/processing/generate-enriched-df.ipynb): This process loaded each image, masked it to exclude the horizon, and then calculated statistics from the image.
+  - [generate-ideal-df.ipynb](notebooks/processing/generate-ideal-df.ipynb): This process loaded the parsed results from all images and then filtered out images that were illuminated by the moon or the sun, using the Skyfield library for ephemeris calculations.
+  - [validate-missing-source-data.ipynb](notebooks/processing/validate-missing-source-data.ipynb): This notebook was used to test an approach to determining which entries in the dataframes were excluded from the analysis by hand-filtering.
